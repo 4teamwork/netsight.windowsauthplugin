@@ -1,6 +1,9 @@
 2.3 (unreleased)
 ----------------
 
+- Fix came_from parameter in redirect to logged_in url.
+  [buchi]
+
 - Set Persistent-Auth header to indicate that consecutive requests should
   no longer include the Authorization header.
   [buchi]

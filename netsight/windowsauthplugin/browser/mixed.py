@@ -1,5 +1,7 @@
 from Products.CMFCore.utils import getToolByName
 from Products.Five import BrowserView
+from urlparse import parse_qs
+from urlparse import urlparse
 
 
 class SPNEGOChallengeJSView(BrowserView):
@@ -27,4 +29,9 @@ class SPNEGOChallengeJSView(BrowserView):
             return u"/* Authentication cookie was not set. Cannot redirect. */"
         else:
             # Return Javascript to redirect and continue login process
-            return "window.location.replace('%s/logged_in?came_from=%s');" % (self.context.portal_url(), self.request.get('came_from', '/'))
+            qs = urlparse(self.request.get('HTTP_REFERER', '')).query
+            query_params = parse_qs(qs)
+            portal_url = self.context.portal_url()
+            return "window.location.replace('%s/logged_in?came_from=%s')" % (
+                portal_url,
+                query_params.get('came_from', [portal_url])[0])
