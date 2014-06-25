@@ -1,3 +1,9 @@
+2.3 (unreleased)
+----------------
+
+- Fix came_from parameter in redirect to logged_in url.
+  [buchi]
+
 2.3 (2014-03-17)
 ----------------
 
