@@ -1,3 +1,10 @@
+2.3 (unreleased)
+----------------
+
+- Set Persistent-Auth header to indicate that consecutive requests should
+  no longer include the Authorization header.
+  [buchi]
+
 2.3 (2014-03-17)
 ----------------
 

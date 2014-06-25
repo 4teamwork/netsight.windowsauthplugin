@@ -135,6 +135,10 @@ class WindowsauthpluginHelper( BasePlugin ):
         if pas_instance is not None:
             response = request.RESPONSE
             pas_instance.updateCredentials(request, response, username, '')
+            # Client should no longer send the Authorization header in
+            # consecutive requests
+            # http://msdn.microsoft.com/en-us/library/dd341152.aspx
+            response.setHeader('Persistent-Auth', 'true')
 
         return username, username
 
