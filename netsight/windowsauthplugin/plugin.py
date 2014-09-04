@@ -11,14 +11,24 @@ from zExceptions import Forbidden
 from zLOG import LOG, ERROR, DEBUG, INFO
 
 import sys
+import pkg_resources
 
 if sys.platform == 'win32':
     WINDOWS = 1
 else:
     WINDOWS = 0
 
+try:
+    pkg_resources.get_distribution('python-gssapi')
+except pkg_resources.DistributionNotFound:
+    HAS_PYTHON_GSSAPI = False
+else:
+    HAS_PYTHON_GSSAPI = True
+
 if WINDOWS:
     import sspi, sspicon
+elif HAS_PYTHON_GSSAPI:
+    import gssapi
 else:
     import kerberos
     from kerberos import GSSError
@@ -100,6 +110,38 @@ class WindowsauthpluginHelper( BasePlugin ):
                     sspicon.SECPKG_ATTR_NAMES)		               
             else:
                 raise Forbidden
+
+        elif HAS_PYTHON_GSSAPI:
+            LOG('SPNEGO plugin', INFO, "Using gssapi: %s" % request.getURL())
+            in_token = ticket.decode('base64')
+            service_name = gssapi.Name(self.service,
+                                       gssapi.C_NT_HOSTBASED_SERVICE)
+            try:
+                server_cred = gssapi.Credential(service_name,
+                                                usage=gssapi.C_ACCEPT)
+            except gssapi.error.GSSException, e:
+                LOG('SPNEGO plugin',
+                    ERROR,
+                    "%s: GSSError %s" % (remote_host, e))
+                raise Forbidden
+
+            ctx = gssapi.AcceptContext(server_cred)
+
+            # Feed the input token to the context and ignore any output token
+            # as Kerberos mechanism does not require further steps
+            try:
+                ctx.step(in_token)
+            except gssapi.error.GSSException, e:
+                LOG('SPNEGO plugin',
+                    ERROR,
+                    "%s: GSSError %s" % (remote_host, e))
+                raise Forbidden
+
+            if ctx.established and ctx.peer_name is not None:
+                username = str(ctx.peer_name)
+            else:
+                raise Forbidden
+            ctx.delete()
 
         else:
             result, context = kerberos.authGSSServerInit(self.service)
