@@ -1,6 +1,9 @@
 2.3 (unreleased)
 ----------------
 
+- Implement authentication using python-gssapi.
+  [buchi]
+
 - Fix came_from parameter in redirect to logged_in url.
   [buchi]
 
